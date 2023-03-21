@@ -1,8 +1,12 @@
-const count = document.getElementsByClassName("mr-2 mt-4 menu-count");
+const menuCount = document.querySelector(".mr-2");
 const menuName = document.getElementById("espresso-menu-name");
 const menuAddBtn = document.getElementById("espresso-menu-submit-button");
 const menuList = document.getElementById("espresso-menu-list");
 const submission = document.getElementById("espresso-menu-form");
+
+function countMenu() {
+  menuCount.innerHTML = `${"총 " + menuList.childElementCount + "개"}`;
+}
 
 ////Step1 메뉴에 새로운 메뉴 확인 버튼 입력으로 추가 ////
 function AddMenuList(Menu) {
@@ -47,8 +51,11 @@ function AddMenuList(Menu) {
     let delconfirm = confirm("삭제 하시겠습니까?");
     if (delconfirm === true) {
       li.remove();
+      countMenu();
     }
   });
+
+  countMenu();
 }
 
 //input이 비어있는지 아닌지 확인후 메뉴값 넘겨주고 비우기
