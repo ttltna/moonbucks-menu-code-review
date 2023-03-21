@@ -4,6 +4,7 @@ const menuAddBtn = document.getElementById("espresso-menu-submit-button");
 const menuList = document.getElementById("espresso-menu-list");
 const submission = document.getElementById("espresso-menu-form");
 
+////Step1 메뉴에 새로운 메뉴 확인 버튼 입력으로 추가 ////
 function AddMenuList(Menu) {
   /* 태그 생성 및 css 적용을 위해 class 값 넣어주기 */
   const li = document.createElement("li");
@@ -71,3 +72,8 @@ submission.addEventListener("keydown", (e) => {
     checkEmptyInput();
   }
 });
+////Step1////
+
+////Step2 메뉴의 수정 버튼을 눌러 이름 수정 가능 ////
+function handleModifyBtnClick(event) {}
+////Step2////
