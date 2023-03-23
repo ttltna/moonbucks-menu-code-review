@@ -88,6 +88,7 @@
 const menuInput = document.getElementById("espresso-menu-name");
 const menuSubmitButton = document.getElementById("espresso-menu-submit-button");
 const menuForm = document.getElementById("espresso-menu-form");
+const menuList = document.getElementById("espresso-menu-list");
 const pattern = /[a-zA-Z가-힣]{1,}[\s]*$/;
 const modifyBtn = "bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button";
 const removeBtn = "bg-gray-50 text-gray-500 text-sm menu-remove-button";
@@ -99,30 +100,41 @@ function InitializationInput() {
 function creatLiTag() {
   const li = document.createElement("li");
   li.setAttribute("class", "menu-list-item d-flex items-center py-2");
+  return li;
 }
 
-function createSpanTag() {
+function createSpanTag(menuName) {
   const span = document.createElement("span");
   span.setAttribute("class", "w-100 pl-2 menu-name");
+  span.innerText = menuName;
+  return span;
 }
 
-function createBtnTag(className) {
+function createBtnTag(className, btnText) {
   const btn = document.createElement("button");
   btn.setAttribute("class", `${className}`);
+  btn.innerText = btnText;
+  return btn;
 }
 
-function TagPasting() {
-  creatLiTag();
-  createSpanTag();
-  createBtnTag(modifyBtn);
-}
+function handleModifyBtn(event) {}
 
-menuForm.addEventListener("submit", function BlockSubmit(e) {
-  e.preventDefault();
+menuForm.addEventListener("submit", function BlockSubmit(event) {
+  event.preventDefault();
 });
 
-menuSubmitButton.addEventListener("click", function menuSubmit() {
+menuSubmitButton.addEventListener("click", function menuSubmit(event) {
   if (pattern.test(`${menuInput.value}`)) {
-    InitializationInput();
+    const liTag = creatLiTag();
+    liTag.append(
+      createSpanTag(menuInput.value),
+      createBtnTag(modifyBtn, "수정"),
+      createBtnTag(removeBtn, "삭제")
+    );
+    menuList.append(liTag);
+    // console.log(menuList.firstChild.firstChild.innerText);
+    // console.dir(menuList);
+    // console.log(event);
+    console.dir(event);
   }
 });
