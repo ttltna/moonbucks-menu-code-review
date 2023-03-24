@@ -117,24 +117,35 @@ function createBtnTag(className, btnText) {
   return btn;
 }
 
-function handleModifyBtn(event) {}
+function checkPattern(menu) {
+  if (pattern.test(`${menu}`)) {
+    return menu.trim();
+  }
+}
+
+function handleModifyBtnClick(contents) {
+  contents = prompt("수정할 이름을 적어주세요");
+  return contents;
+}
+function handleRemoveBtnClick(contents) {}
 
 menuForm.addEventListener("submit", function BlockSubmit(event) {
   event.preventDefault();
 });
 
-menuSubmitButton.addEventListener("click", function menuSubmit(event) {
-  if (pattern.test(`${menuInput.value}`)) {
+menuSubmitButton.addEventListener("click", function menuSubmit() {
+  if (checkPattern(menuInput.value)) {
     const liTag = creatLiTag();
-    liTag.append(
-      createSpanTag(menuInput.value),
-      createBtnTag(modifyBtn, "수정"),
-      createBtnTag(removeBtn, "삭제")
-    );
+    const spanTag = createSpanTag(menuInput.value);
+    const revicebtn = createBtnTag(modifyBtn, "수정");
+    const delbtn = createBtnTag(removeBtn, "삭제");
+    liTag.append(spanTag, revicebtn, delbtn);
     menuList.append(liTag);
-    // console.log(menuList.firstChild.firstChild.innerText);
-    // console.dir(menuList);
-    // console.log(event);
-    console.dir(event);
+
+    revicebtn.addEventListener(
+      "click",
+      handleModifyBtnClick(spanTag.innerText)
+    );
+    delbtn.addEventListener("click", handleRemoveBtnClick());
   }
 });
