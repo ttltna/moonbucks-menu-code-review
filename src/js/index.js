@@ -14,6 +14,7 @@ const removeClassName = "bg-gray-50 text-gray-500 text-sm menu-remove-button";
 const moonbucksMenu = document.querySelector(".flex-wrap");
 const h2Tag = document.querySelector(".mt-1");
 const inputLabel = document.querySelector(".input-label");
+const outOfStock = "bg-gray-50 text-gray-500 text-sm mr-1 menu-sold-out-button";
 const mMA = [
   //moonbucksMenuArray
   ["espresso", "☕ 에스프레소 메뉴 관리", "에스프레소 메뉴 이름"],
@@ -22,8 +23,7 @@ const mMA = [
   ["teavana", "🫖 티바나 메뉴 관리", "티바나 메뉴 이름"],
   ["desert", "🍰 디저트 메뉴 관리", "디저트 메뉴 이름"],
 ];
-const nowCategory = "espresso";
-const localContents = new Object();
+let nowCategory = "espresso";
 //*Step2
 
 /*
@@ -65,72 +65,130 @@ const countingMenuList = () => {
   menuListCount.textContent = `총 ${menuList.childElementCount}개`;
 };
 
-const menuSubmit = () => {
-  if (checkPattern(menuInput.value)) {
+const changeLocalVaule = (targetObject, changeInput) => {
+  let localGetItem = JSON.parse(window.localStorage.getItem(nowCategory));
+  for (let i = 0; i < localGetItem.length; i++) {
+    if (localGetItem[i].value === targetObject) {
+      localGetItem[i].value = changeInput.textContent;
+    }
+  }
+  window.localStorage.setItem(nowCategory, JSON.stringify(localGetItem));
+};
+
+const createTags = (inputTagValue) => {
+  if (checkPattern(inputTagValue)) {
     const liTag = creatLiTag();
-    const spanTag = createSpanTag(menuInput.value);
+    const spanTag = createSpanTag(inputTagValue);
     const modifyBtn = createBtnTag(modifyClassName, "수정");
     const removeBtn = createBtnTag(removeClassName, "삭제");
     liTag.append(spanTag, modifyBtn, removeBtn);
     menuList.append(liTag);
 
-    /* 어떻게 해야 외부에서 spanTag.textContent에 prompt값을 줄 수 있는지 */
-    modifyBtn.addEventListener("click", () => {
-      spanTag.textContent = prompt("수정하실 이름을 적어주세요");
-    });
-
-    /* 어떻게 해야 외부에서 liTag.remove()를 할 수 있는지 */
-    removeBtn.addEventListener("click", () => {
-      if (confirm("삭제하시겠습니까?")) {
-        liTag.remove();
-        countingMenuList();
+    modifyBtn.addEventListener("click", (event) => {
+      let previousText = spanTag.textContent;
+      let tempValue = prompt("수정하실 이름을 적어주세요");
+      if (!(tempValue === null) && pattern.test(`${tempValue}`)) {
+        spanTag.textContent = tempValue;
+        changeLocalVaule(previousText, spanTag);
+      } else if (tempValue === null) {
+      } else {
+        alert("메뉴로 등록가능한것만 적어주세요!");
       }
     });
-    const localObj = {
-      category: nowCategory,
-      value: menuInput.value,
-    };
-    localContents.name = [...menuInput.value];
-    localContents.stockArticles = 10;
-    window.localStorage.setItem(nowCategory, JSON.stringify(localContents));
-    InitializationInput();
-    countingMenuList();
+
+    // modifyBtn.addEventListener("click", () => {
+    //   let tempTextValue = prompt("수정하실 이름을 적어주세요");
+    //   if (pattern.test(`${tempTextValue}`)) {
+    //     spanTag.textContent = tempTextValue;
+    //     let localGetItem = JSON.parse(window.localStorage.getItem(nowCategory));
+    //     console.log("localGetItem : ", localGetItem);
+    //     window.localStorage.setItem(nowCategory, JSON.stringify(localGetItem));
+    //   } else {
+    //     alert("메뉴로 등록가능한것만 적어주세요!");
+    //   }
+    // });
+
+    removeBtn.addEventListener("click", (event) => {
+      if (confirm("삭제하시겠습니까?")) {
+        liTag.remove();
+        console.dir(event);
+      }
+    });
   }
+};
+
+const handleLocalStorage = () => {
+  /*
+   * JSON parse()는 JSON이 string타입이기때문에 javascript Object로 사용하기위해 바꾸는 방법.
+   * JSON stringipy()는 javascript Object를 서버와 통신할때 쓰는 JSON형태로 바꾸기 위해 쓰는 방법.
+   */
+  let localContents = {
+    value: menuInput.value,
+  };
+
+  if (window.localStorage.getItem(nowCategory)) {
+    let previousContents = window.localStorage.getItem(nowCategory);
+    window.localStorage.setItem(
+      nowCategory,
+      JSON.stringify([...JSON.parse(previousContents), localContents])
+    );
+  } else {
+    window.localStorage.setItem(nowCategory, JSON.stringify([localContents]));
+  }
+};
+
+const drawLocalItems = () => {
+  const drawLocalContents = JSON.parse(
+    window.localStorage.getItem(nowCategory)
+  );
+  if (drawLocalContents) {
+    for (let i = 0; i < drawLocalContents.length; i++) {
+      createTags(drawLocalContents[i].value);
+    }
+  }
+};
+
+const menuSubmit = () => {
+  createTags(menuInput.value);
+  handleLocalStorage();
+  InitializationInput();
+  countingMenuList();
 };
 
 const espressoMenu = () => {
   h2Tag.textContent = mMA[0][1];
   inputLabel.textContent = mMA[0][2];
   menuInput.placeholder = mMA[0][2];
-  nowCategory = "espresso";
+  nowCategory = mMA[0][0];
 };
 const frappuccinoMenu = () => {
   h2Tag.textContent = mMA[1][1];
   inputLabel.textContent = mMA[1][2];
   menuInput.placeholder = mMA[1][2];
-  nowCategory = "frappuccino";
+  nowCategory = mMA[1][0];
 };
 const blendedMenu = () => {
   h2Tag.textContent = mMA[2][1];
   inputLabel.textContent = mMA[2][2];
   menuInput.placeholder = mMA[2][2];
-  nowCategory = "blended";
+  nowCategory = mMA[2][0];
 };
 const teavanaMenu = () => {
   h2Tag.textContent = mMA[3][1];
   inputLabel.textContent = mMA[3][2];
   menuInput.placeholder = mMA[3][2];
-  nowCategory = "teavana";
+  nowCategory = mMA[3][0];
 };
 const desertMenu = () => {
   h2Tag.textContent = mMA[4][1];
   inputLabel.textContent = mMA[4][2];
   menuInput.placeholder = mMA[4][2];
-  nowCategory = "desert";
+  nowCategory = mMA[4][0];
 };
 
-const checkCategory = (category) => {
+const Category = (category) => {
   for (let i = 0; i < 5; i++) {
+    // moonbucksMenuArray = ex) [["espresso", "☕ 에스프레소 메뉴 관리", "에스프레소 메뉴 이름"],]
     if (category === mMA[i][0]) {
       if (i === 0) {
         espressoMenu();
@@ -160,5 +218,11 @@ menuSubmitButton.addEventListener("click", menuSubmit);
 
 moonbucksMenu.addEventListener("click", (event) => {
   // console.dir(event.target.dataset);
-  checkCategory(event.target.dataset.categoryName);
+  Category(event.target.dataset.categoryName);
+  menuList.replaceChildren();
+  drawLocalItems();
+  countingMenuList();
 });
+
+drawLocalItems();
+countingMenuList();
