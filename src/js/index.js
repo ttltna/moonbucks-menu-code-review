@@ -5,6 +5,7 @@ const menuForm = document.getElementById("espresso-menu-form");
 const menuList = document.getElementById("espresso-menu-list");
 const menuListCount = document.querySelector(".menu-count");
 const pattern = /[a-zA-Z가-힣]{1,}[\s]*$/;
+const regExp = /[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"]{1,}/;
 const modifyClassName =
   "bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button";
 const removeClassName = "bg-gray-50 text-gray-500 text-sm menu-remove-button";
@@ -24,6 +25,7 @@ const mMA = [
   ["desert", "🍰 디저트 메뉴 관리", "디저트 메뉴 이름"],
 ];
 let nowCategory = "espresso";
+let toggleValue = true;
 //*Step2
 
 /*
@@ -41,10 +43,14 @@ const creatLiTag = () => {
   return li;
 };
 
-const createSpanTag = (menuName) => {
+const createSpanTag = (menuName, status) => {
   const span = document.createElement("span");
   span.setAttribute("class", "w-100 pl-2 menu-name");
   span.textContent = menuName;
+  if (!status) {
+    span.style.textDecoration = "line-through";
+    span.style.color = "gray";
+  }
   return span;
 };
 
@@ -56,8 +62,9 @@ const createBtnTag = (className, btnText) => {
 };
 
 const checkPattern = (menu) => {
-  if (pattern.test(`${menu}`)) {
-    return menu.trim();
+  if (!(menu === null) && !regExp.test(`${menu}`) && pattern.test(`${menu}`)) {
+    menuInput.value = menu.trim();
+    return menuInput.value;
   }
 };
 
@@ -65,56 +72,95 @@ const countingMenuList = () => {
   menuListCount.textContent = `총 ${menuList.childElementCount}개`;
 };
 
+const textDecoLine = (spanTag) => {
+  /* 바뀐 과정 ? */
+  // let localGetItem = JSON.parse(window.localStorage.getItem(nowCategory));
+  // // let product = localGetItem.map((checkStock) => {
+  // //   if (checkStock.value === spanTag.textContent) {
+  // //     return checkStock.stock;
+  // //   }
+  // // });
+  // localGetItem.map((checkStock) => {
+  //   return checkStock.stock;
+  // });
+  // console.log(localGetItem);
+  // if (localGetItem) {
+  //   spanTag.style.textDecoration = "line-through";
+  //   spanTag.style.color = "gray";
+  //   localGetItem.stock = false;
+  // } else {
+  //   spanTag.style.textDecoration = "";
+  //   spanTag.style.color = "black";
+  //   localGetItem.stock = true;
+  // }
+  // console.log(localGetItem);
+  let localGetItem = JSON.parse(window.localStorage.getItem(nowCategory));
+  let itemArr = localGetItem.map((menuName) => {
+    return menuName.value;
+  });
+  let stockArr = localGetItem.map((checkStock) => {
+    return checkStock.stock;
+  });
+  let index = itemArr.indexOf(`${spanTag.textContent}`);
+  console.log(stockArr[index]);
+  if (stockArr[index]) {
+    spanTag.style.textDecoration = "line-through";
+    spanTag.style.color = "gray";
+    stockArr[index] = false;
+  } else {
+    spanTag.style.textDecoration = "";
+    spanTag.style.color = "black";
+    stockArr[index] = true;
+  }
+  const spreadArr = [];
+  for (let i = 0; i < localGetItem.length; i++) {
+    spreadArr[i] = { value: itemArr[i], stock: stockArr[i] };
+  }
+  window.localStorage.setItem(nowCategory, JSON.stringify(spreadArr));
+};
+
 const changeLocalVaule = (targetObject, changeInput) => {
   let localGetItem = JSON.parse(window.localStorage.getItem(nowCategory));
-  for (let i = 0; i < localGetItem.length; i++) {
-    if (localGetItem[i].value === targetObject) {
-      localGetItem[i].value = changeInput.textContent;
+  localGetItem.map((menuName) => {
+    if (menuName.value === targetObject) {
+      menuName.value = changeInput.textContent;
     }
-  }
+    return menuName.value;
+  });
+  // for (let i = 0; i < localGetItem.length; i++) {
+  //   if (localGetItem[i].value === targetObject) {
+  //     localGetItem[i].value = changeInput.textContent;
+  //   }
+  // }
   window.localStorage.setItem(nowCategory, JSON.stringify(localGetItem));
 };
 
-const createTags = (inputTagValue) => {
-  if (checkPattern(inputTagValue)) {
-    const liTag = creatLiTag();
-    const spanTag = createSpanTag(inputTagValue);
-    const modifyBtn = createBtnTag(modifyClassName, "수정");
-    const removeBtn = createBtnTag(removeClassName, "삭제");
-    liTag.append(spanTag, modifyBtn, removeBtn);
-    menuList.append(liTag);
+const removeLocalVaule = (targetText) => {
+  let localGetItem = JSON.parse(window.localStorage.getItem(nowCategory));
+  let itemArr = localGetItem.map((menuName) => {
+    return menuName.value;
+  });
+  let stockArr = localGetItem.map((checkStock) => {
+    return checkStock.stock;
+  });
+  itemArr.splice(itemArr.indexOf(`${targetText}`), 1);
 
-    modifyBtn.addEventListener("click", (event) => {
-      let previousText = spanTag.textContent;
-      let tempValue = prompt("수정하실 이름을 적어주세요");
-      if (!(tempValue === null) && pattern.test(`${tempValue}`)) {
-        spanTag.textContent = tempValue;
-        changeLocalVaule(previousText, spanTag);
-      } else if (tempValue === null) {
-      } else {
-        alert("메뉴로 등록가능한것만 적어주세요!");
-      }
-    });
+  /*
+   * 두 배열을 합치는데 concat과 spread를 사용해 보려 했지만 itemArr 값들이 먼저 다 들억고 그다음 stockArr값이 다 들어가므로 원하는 배열이 안만들어짐
+   * 그래서 결국 for문을 사용하게 됨
+   */
+  // const spreadArr = [...itemArr, ...stockArr];
+  // let removedArr = itemArr.map((menuName) => {
+  //   let arrObject = { value: menuName };
+  //   return arrObject;
+  // });
+  // window.localStorage.setItem(nowCategory, JSON.stringify(removedArr));
 
-    // modifyBtn.addEventListener("click", () => {
-    //   let tempTextValue = prompt("수정하실 이름을 적어주세요");
-    //   if (pattern.test(`${tempTextValue}`)) {
-    //     spanTag.textContent = tempTextValue;
-    //     let localGetItem = JSON.parse(window.localStorage.getItem(nowCategory));
-    //     console.log("localGetItem : ", localGetItem);
-    //     window.localStorage.setItem(nowCategory, JSON.stringify(localGetItem));
-    //   } else {
-    //     alert("메뉴로 등록가능한것만 적어주세요!");
-    //   }
-    // });
-
-    removeBtn.addEventListener("click", (event) => {
-      if (confirm("삭제하시겠습니까?")) {
-        liTag.remove();
-        console.dir(event);
-      }
-    });
+  const spreadArr = [];
+  for (let i = 0; i < localGetItem.length - 1; i++) {
+    spreadArr[i] = { value: itemArr[i], stock: stockArr[i] };
   }
+  window.localStorage.setItem(nowCategory, JSON.stringify(spreadArr));
 };
 
 const handleLocalStorage = () => {
@@ -124,6 +170,7 @@ const handleLocalStorage = () => {
    */
   let localContents = {
     value: menuInput.value,
+    stock: true,
   };
 
   if (window.localStorage.getItem(nowCategory)) {
@@ -137,22 +184,65 @@ const handleLocalStorage = () => {
   }
 };
 
+const createTags = (inputTagValue, stockStatus) => {
+  const liTag = creatLiTag();
+  const spanTag = createSpanTag(inputTagValue, stockStatus);
+  const stockBtn = createBtnTag(outOfStock, "품절");
+  const modifyBtn = createBtnTag(modifyClassName, "수정");
+  const removeBtn = createBtnTag(removeClassName, "삭제");
+  liTag.append(spanTag, stockBtn, modifyBtn, removeBtn);
+  menuList.append(liTag);
+
+  stockBtn.addEventListener("click", () => {
+    textDecoLine(spanTag);
+  });
+
+  modifyBtn.addEventListener("click", () => {
+    let previousText = spanTag.textContent;
+    let tempValue = prompt("수정하실 이름을 적어주세요");
+    if (
+      !(tempValue === null) &&
+      !regExp.test(`${tempValue}`) &&
+      pattern.test(`${tempValue}`)
+    ) {
+      spanTag.textContent = tempValue;
+      changeLocalVaule(previousText, spanTag);
+    } else if (tempValue === null) {
+    } else {
+      alert("메뉴로 등록가능한것만 적어주세요!");
+    }
+  });
+
+  removeBtn.addEventListener("click", () => {
+    if (confirm("삭제하시겠습니까?")) {
+      liTag.remove();
+      removeLocalVaule(spanTag.textContent);
+    }
+  });
+};
+
 const drawLocalItems = () => {
   const drawLocalContents = JSON.parse(
     window.localStorage.getItem(nowCategory)
   );
+
   if (drawLocalContents) {
-    for (let i = 0; i < drawLocalContents.length; i++) {
-      createTags(drawLocalContents[i].value);
-    }
+    // for (let i = 0; i < drawLocalContents.length; i++) {
+    //   createTags(drawLocalContents[i].value);
+    // }
+    drawLocalContents.map((tags) => {
+      createTags(tags.value, tags.stock);
+    });
   }
 };
 
 const menuSubmit = () => {
-  createTags(menuInput.value);
-  handleLocalStorage();
-  InitializationInput();
-  countingMenuList();
+  if (checkPattern(menuInput.value)) {
+    createTags(menuInput.value);
+    handleLocalStorage();
+    InitializationInput();
+    countingMenuList();
+  }
 };
 
 const espressoMenu = () => {
@@ -226,3 +316,11 @@ moonbucksMenu.addEventListener("click", (event) => {
 
 drawLocalItems();
 countingMenuList();
+
+/* 문제 1 : 로컬스토리지에 특수문자, 공백이 들어가고 정규표현식에서 설정한 값 외에는 menuInput.value가 초기화되면 안되는데 초기화되어서
+createTags에 handleLocalStorage, InitializationInput를 추가하니 고쳐짐*/
+
+/* 문제 2 : drawLocalItems에서 createTags를 사용하는데 거기에다가 handleLocalStorage, InitializationInput를 추가하니까 
+로컬스토리지에 "" 빈값이 계속 들어가는 문제 발생했었음 */
+
+/* 해결 : 그래서 menuSubmit()에서 미리 checkPattern() 검사를 하는 구조로 바꿈 */
